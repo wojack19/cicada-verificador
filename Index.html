@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cicada 3301 Verificador</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/openpgp/5.5.0/openpgp.min.js"></script>
+  <style>
+    body {
+      background-color: #0e0e0e;
+      color: #00ff00;
+      font-family: monospace;
+      padding: 2rem;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: #111;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      background: #111;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cicada 3301 PGP Verificador</h1>
+  <p>Cola abaixo a mensagem assinada. Este verificador indica se é autêntica da Cicada.</p>
+  <textarea id="signedMessage" placeholder="Cola aqui a mensagem PGP assinada..."></textarea>
+  <button onclick="verifySignature()">Verificar</button>
+  <div class="result" id="result"></div>  <script>
+    const cicadaPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+mQGiBEkEptMRBADGaONhNDrMvzozKI1Oj65KI9BavNcm+OcMgktMXOZ5qhr6zrZI
+5D1dCArl8XwSzTeiYbdQU3wbj3qvZT+UMSKnM4EGtgPu6pC3qRf4wgujMKUO8Vgi
+... (encurtado para exemplo) ...
+=XXXXX
+-----END PGP PUBLIC KEY BLOCK-----`;
+
+    async function verifySignature() {
+      const signedText = document.getElementById('signedMessage').value;
+      const resultBox = document.getElementById('result');
+      resultBox.innerHTML = 'A verificar...';
+
+      try {
+        const publicKey = await openpgp.readKey({ armoredKey: cicadaPublicKey });
+        const message = await openpgp.readCleartextMessage({ cleartextMessage: signedText });
+
+        const verificationResult = await openpgp.verify({
+          message,
+          verificationKeys: publicKey
+        });
+
+        const { verified } = verificationResult.signatures[0];
+        await verified; // throws on bad signature
+        resultBox.innerHTML = '<strong>Assinatura autêntica da Cicada 3301.</strong>';
+      } catch (e) {
+        resultBox.innerHTML = '<strong>Não é uma assinatura válida da Cicada 3301.</strong>';
+      }
+    }
+  </script></body>
+</html>
